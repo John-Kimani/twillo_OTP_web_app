@@ -37,13 +37,10 @@ function LoginEmail() {
                 <Form onSubmit={onSubmit}>
                     <InputField name='email' label='Email' type='email' error={formErrors.email} fieldRef={emailField} autoFocus/>
                     <InputField name='password' label='Password' type='password' error={formErrors.password} fieldRef={passwordField}/>
-                    <Button variant='primary' type='submit'>Login</Button>
+                    <div className="text-center">
+                    <Button variant='primary' type='submit' style={{ width: '20rem'}}>Login</Button>
+                    </div>
                 </Form>
-
-                <div className="mt-2">
-                    <hr />
-                    <p>Don&apos;t have an account? <Link to='/sign-up'>Register</Link></p>
-                </div>
             </div>
         </main>
     )

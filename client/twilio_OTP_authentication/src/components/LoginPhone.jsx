@@ -40,13 +40,10 @@ function LoginPhone() {
                 <Form onSubmit={onSubmit}>
                     <InputField name='email' label='Phone Number' type='number' error={formErrors.phone_number} fieldRef={phoneNumberField} autoFocus/>
                     <InputField name='password' label='Password' type='password' error={formErrors.password} fieldRef={passwordField}/>
-                    <Button variant='primary' type='submit'>Login</Button>
+                    <div className="text-center">
+                    <Button variant='primary' type='submit' style={{ width: '20rem'}}>Login</Button>
+                    </div>
                 </Form>
-
-                <div className="mt-2">
-                    <hr />
-                    <p>Don&apos;t have an account? <Link to='/sign-up'>Register</Link></p>
-                </div>
             </div>
         </main>
     )
