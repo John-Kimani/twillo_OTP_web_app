@@ -51,7 +51,11 @@ class RegisterUserView(generics.GenericAPIView):
             }
 
             return Response(data=response, status=status.HTTP_201_CREATED)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        response = {
+            'success': 'Failed',
+            'error': serializer.errors
+        }
+        return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
     
 
 class VerifyOTPView(generics.GenericAPIView):

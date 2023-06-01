@@ -1,10 +1,13 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef } from 'react';
+import { redirect } from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import InputField from '../components/inputField';
 import { Link } from 'react-router-dom';
 import NavBar from '../components/NavBar';
+import { useFlash } from '../context/Flashprovider';
+import FlashMessage from '../components/FlashMessage';
 
 function Register() {
     const [formErrors, setFormErrors] = useState({});
@@ -13,6 +16,7 @@ function Register() {
     const userNameField = useRef();
     const emailField = useRef();
     const phoneNumberField = useRef();
+    const flash = useFlash();
 
     const onSubmit = (e) => {
         e.preventDefault();
@@ -64,14 +68,25 @@ function Register() {
               },
             body: JSON.stringify(userInformation)
         }).then((response) => {
-            if (!response.ok){
-                console.error('Hapa kuna shida')
+            if (response.ok == true){
+                flash('You have successfully registered an account', 'success');
+                setFormErrors({});
+                return redirect('/')
+            } else if(response.ok == false){
+                console.error('Hapa kuna shida', response)
+                flash('Failed to create account', 'danger')
             };
 
-            console.log(response)
             return response.json()})
-        .then((data) => console.log('data', data))
-        .catch((error) => console.error('Shida',error))
+        .then((data) => {
+            // console.log('data', data)
+            // flash(data.success, 'success');
+            
+        })
+        .catch((error) => {
+            console.error('Shida',error)
+            flash('Failed to create account', 'danger')
+        })
 
     }
     return (
@@ -81,6 +96,7 @@ function Register() {
                 <div className="row">
                     <div className="col-md-4"></div>
                     <Card className="col-md-4 mt-4" style={{padding: 0}}>
+                        <FlashMessage />
                         <Card.Title className='text-center pt-3'> REGISTER</Card.Title>
                         <Card.Body>
                             <Form onSubmit={onSubmit}>
