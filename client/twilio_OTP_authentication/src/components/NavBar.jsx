@@ -10,14 +10,16 @@ function NavBar() {
       <Navbar.Brand href="/dashboard">Twilio Authentication</Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
-        {/* <Nav className="mx-auto">
-          <Nav.Link href="/login">Login with Email</Nav.Link>
-          <Nav.Link href="/login">Login with phone</Nav.Link>
-        </Nav> */}
+        
+        <Nav className="mx-auto">
+          <Nav.Link href="#">About APP</Nav.Link>
+        </Nav>
 
-        {/* <Nav className="my-auto">
-          <Nav.Link href="#logout">Logout</Nav.Link>
-        </Nav> */}
+        <Nav className="my-auto">
+          {/* <Nav.Link href="#logout">Logout</Nav.Link> */}
+          <Nav.Link href="/">Login</Nav.Link>
+          <Nav.Link href="/sign-up">Sign Up</Nav.Link>
+        </Nav>
       </Navbar.Collapse>
     </Container>
   </Navbar>
