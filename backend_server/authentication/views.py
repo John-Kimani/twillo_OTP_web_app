@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from rest_framework import generics, status
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -27,19 +26,20 @@ class RegisterUserView(generics.GenericAPIView):
 
         serializer = self.serializer_class(data=data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
+
+            user_data = serializer._validated_data 
 
             serializer.save()
 
-            user_data = serializer.data 
-
             user = User.objects.get(username=user_data['username'])
 
-            ## create jwt token
-            token = RefreshToken.for_user(user=user).access_token
+            phone_number = user_data['phone_number']
+
+            profile = Profile.objects.create(user=user, phone_number=phone_number)
 
             response = {
-                'message': 'Profile created successfully',
+                'message': 'User account created successfully',
                 'data': {
                     'message': 'Verify your email to complete registration',
                     'username': user.username
@@ -47,6 +47,7 @@ class RegisterUserView(generics.GenericAPIView):
             }
 
             return Response(data=response, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VerifyOTP():
     pass

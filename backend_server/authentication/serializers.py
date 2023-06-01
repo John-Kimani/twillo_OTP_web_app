@@ -1,20 +1,22 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from .models import Profile
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class RegisterUserSerializer(serializers.ModelSerializer):
 
+    phone_number = serializers.CharField()
+
     class Meta:
         model = User 
-        fields = ('username', 'email', 'first_name', 'last_name', 'password')
-
+        fields = ('username', 'email', 'first_name', 'last_name', 'phone_number')
     
-    def validate(self, attrs):
+    def validate(self, data):
 
         errors = {}
 
-        username = attrs.pop('username')
-        email = attrs.pop('email')
-        print('username', username, email)
+        username = data.get('username')
+        email = data.get('email')
 
         if self.Meta.model.objects.filter(username__iexact=username).exists():
             errors['username'] = 'An account with that username already exists. Please choose a different username'
@@ -26,7 +28,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(errors)
 
 
-        return super().validate(attrs)
+        return data
     
     def create(self, validated_data):
 
@@ -36,11 +38,10 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             first_name = self.validated_data['first_name'],
             last_name = self.validated_data['last_name']
         )
+        ## create jwt token
+        token = RefreshToken.for_user(user=user).access_token
 
-        password = validated_data.pop('password')
-
-        user.set_password(password)
-
+        # profile = Profile.objects.create(user=user)
         user.save()
-
+        
         return user
