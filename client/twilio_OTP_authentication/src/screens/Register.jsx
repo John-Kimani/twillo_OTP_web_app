@@ -49,6 +49,8 @@ function Register() {
 
         console.log(`You have entered: FN ${first_name}, LN ${last_name}, UN ${username}, EM ${email}, PN ${phone_number}`)
 
+        
+
     }
     return (
         <>

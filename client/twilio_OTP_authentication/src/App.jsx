@@ -9,16 +9,19 @@ import './App.css';
 import Login from './screens/Login';
 import Register from './screens/Register';
 import OTP from './screens/OTP';
+import ApiProvider from './context/Apiprovider';
 
 function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path='/' element={<Login />} />
-        <Route path='sign-up/' element={<Register />} />
-        <Route path='verify-token/' element={<OTP />} />
-      </Routes>
+      <ApiProvider>
+        <Routes>
+          <Route path='/' element={<Login />} />
+          <Route path='sign-up/' element={<Register />} />
+          <Route path='verify-token/' element={<OTP />} />
+        </Routes>
+      </ApiProvider>
     </BrowserRouter>
   )
 }
