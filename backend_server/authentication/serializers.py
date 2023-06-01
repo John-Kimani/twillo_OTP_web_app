@@ -45,3 +45,32 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         user.save()
         
         return user
+    
+class VerifyOTPSerializer(serializers.ModelSerializer):
+
+    otp = serializers.CharField()
+    class Meta:
+        model = Profile
+        fields = ['otp']
+
+
+    
+
+class PhoneLoginSerializer(serializers.ModelSerializer):
+
+    phone_number = serializers.CharField()
+
+    class Meta:
+        model = Profile
+        fields = ['phone_number']
+
+
+
+
+class EmailLoginSerializer(serializers.ModelSerializer):
+
+    email = serializers.EmailField()
+
+    class Meta:
+        model = User
+        fields = ['email']

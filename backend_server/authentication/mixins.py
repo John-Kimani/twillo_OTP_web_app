@@ -4,18 +4,29 @@ import random
 
 class MessageHandler:
     phone_number = None
-    otp = None 
 
-    def __init__(self, phone_number, otp) -> None:
+    def __init__(self, phone_number) -> None:
         self.phone_number = phone_number
-        self.otp = otp 
 
     def send_otp_via_message(self):
         client = Client(settings.ACCOUNT_SID, settings.AUTH_TOKEN)
-        message = client.messages.create(
-            body=f'Your OTP is: {self.otp}',
-            from_=f'{settings.TWILIO_PHONE_NUMBER}',
-            to=f'{settings.COUNTRY_CODE}{self.phone_number}'
+        service = client.verify.services(settings.VERIFY_SERVICE)
+        service.verifications.create(
+            to=f'{settings.COUNTRY_CODE}{self.phone_number}',
+            channel='sms'
         )
 
-        print(message.sid)
+    def send_otp_via_email(self, email):
+        client = Client(settings.ACCOUNT_SID, settings.AUTH_TOKEN)
+        service = client.verify.services(settings.VERIFY_SERVICE)
+        service.verifications.create(
+            to=email,
+            channel='email'
+        )
+
+    def verify_token(self, phone_number, token):
+        client = Client(settings.ACCOUNT_SID, settings.AUTH_TOKEN)
+        service = client.verify.services(settings.VERIFY_SERVICE)
+        result = service.verification_checks.create(to=phone_number, code=token)
+
+        print(result.status)
