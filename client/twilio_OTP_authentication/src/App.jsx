@@ -10,18 +10,21 @@ import Login from './screens/Login';
 import Register from './screens/Register';
 import OTP from './screens/OTP';
 import ApiProvider from './context/Apiprovider';
+import FlashProvider from './context/Flashprovider';
 
 function App() {
 
   return (
     <BrowserRouter>
-      <ApiProvider>
-        <Routes>
-          <Route path='/' element={<Login />} />
-          <Route path='sign-up/' element={<Register />} />
-          <Route path='verify-token/' element={<OTP />} />
-        </Routes>
-      </ApiProvider>
+      <FlashProvider>
+        <ApiProvider>
+          <Routes>
+            <Route path='/' element={<Login />} />
+            <Route path='sign-up/' element={<Register />} />
+            <Route path='verify-token/' element={<OTP />} />
+          </Routes>
+        </ApiProvider>
+      </FlashProvider>
     </BrowserRouter>
   )
 }
