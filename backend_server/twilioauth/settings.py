@@ -134,3 +134,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'NON_FIELD_ERRORS_KEY': 'error',
 }
+
+## Twilio config
+ACCOUNT_SID=config('ACCOUNT_SID')
+AUTH_TOKEN=config('AUTH_TOKEN')
+COUNTRY_CODE=config('COUNTRY_CODE')
+TWILIO_PHONE_NUMBER=config('TWILIO_PHONE_NUMBER')
