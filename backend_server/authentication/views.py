@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
+from django.http import JsonResponse
+from django.forms.models import model_to_dict
 
 from rest_framework import generics, status
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 from drf_yasg.utils import swagger_auto_schema
@@ -14,6 +17,7 @@ from .models import Profile
 from .mixins import MessageHandler
 
 import random
+import json
 
 
 
@@ -36,9 +40,15 @@ class RegisterUserView(generics.GenericAPIView):
 
             user = User.objects.get(username=user_data['username'])
 
+            access_token = RefreshToken.for_user(user)
+
             phone_number = user_data['phone_number']
 
-            profile = Profile.objects.create(user=user, phone_number=phone_number)
+            profile = Profile.objects.create(user=user, phone_number=phone_number, token=access_token)
+
+            # new_profile = Profile.objects.get(token=access_token)
+            # new_profile_dict = model_to_dict(new_profile)
+            # new_profile_serialized = json.dumps(new_profile_dict)
 
             response = {
                 'success': 'User account created successfully',
@@ -46,7 +56,8 @@ class RegisterUserView(generics.GenericAPIView):
                     'message': 'Verify your email to complete registration',
                     'username': user.username,
                     'email': user.email,
-                    'phone_number': profile.phone_number
+                    'phone_number': profile.phone_number,
+                    # 'token': new_profile_serialized
                 }
             }
 

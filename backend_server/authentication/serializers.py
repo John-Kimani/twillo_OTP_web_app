@@ -41,7 +41,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         ## create jwt token
         token = RefreshToken.for_user(user=user).access_token
 
-        # profile = Profile.objects.create(user=user)
         user.save()
         
         return user
