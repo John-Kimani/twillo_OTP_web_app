@@ -47,9 +47,31 @@ function Register() {
             return;
         }
 
-        console.log(`You have entered: FN ${first_name}, LN ${last_name}, UN ${username}, EM ${email}, PN ${phone_number}`)
+        let userInformation = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'username': username,
+            'phone_number': phone_number
+        }
 
-        
+        fetch('http://localhost:8000/api/register/', {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+              },
+            body: JSON.stringify(userInformation)
+        }).then((response) => {
+            if (!response.ok){
+                console.error('Hapa kuna shida')
+            };
+
+            console.log(response)
+            return response.json()})
+        .then((data) => console.log('data', data))
+        .catch((error) => console.error('Shida',error))
 
     }
     return (
@@ -76,7 +98,7 @@ function Register() {
                                         <InputField name='username' label='Username*' type='text' error={formErrors.username} fieldRef={userNameField} />
                                     </div>
                                     <div className="col">
-                                        <InputField name='phone_number' label='Phone Number*' type='tel' error={formErrors.phone_number} fieldRef={phoneNumberField} />
+                                        <InputField name='phone_number' label='Phone Number*' type='tel' placeholder='format: 0710200300' error={formErrors.phone_number} fieldRef={phoneNumberField} />
                                     </div>
                                 </div>
 
