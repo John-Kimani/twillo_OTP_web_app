@@ -45,6 +45,14 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         
         return user
     
+class EmailVerificationSerializer(serializers.ModelField):
+    token = serializers.CharField(max_length=555)
+
+    class Meta:
+        model = User
+        fields = ['token']
+        
+    
 class VerifyOTPSerializer(serializers.ModelSerializer):
 
     otp = serializers.CharField()

@@ -1,24 +1,22 @@
-from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from django.http import JsonResponse
-from django.forms.models import model_to_dict
+from django.contrib.sites.shortcuts import get_current_site
+from django.urls import reverse
+from django.conf import settings
 
-from rest_framework import generics, status
+from rest_framework import generics, status, views
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from .serializers import RegisterUserSerializer, VerifyOTPSerializer, PhoneLoginSerializer, EmailLoginSerializer
+from .serializers import RegisterUserSerializer, VerifyOTPSerializer, PhoneLoginSerializer, EmailLoginSerializer,EmailVerificationSerializer
 from .models import Profile
 from .mixins import MessageHandler
+from .utils import Util
 
-import random
-import json
-
+import jwt
 
 
 class RegisterUserView(generics.GenericAPIView):
@@ -40,24 +38,40 @@ class RegisterUserView(generics.GenericAPIView):
 
             user = User.objects.get(username=user_data['username'])
 
-            access_token = RefreshToken.for_user(user)
-
             phone_number = user_data['phone_number']
 
-            profile = Profile.objects.create(user=user, phone_number=phone_number, token=access_token)
+            profile = Profile.objects.create(user=user, phone_number=phone_number)
 
-            # new_profile = Profile.objects.get(token=access_token)
-            # new_profile_dict = model_to_dict(new_profile)
-            # new_profile_serialized = json.dumps(new_profile_dict)
+            refresh = RefreshToken.for_user(user)
+
+            current_site = get_current_site(request).domain
+
+            relativeLink = reverse('email-verify')
+
+            absurl = 'http://'+current_site+relativeLink+'?token='+str(refresh.access_token)
+
+            email_body = f'Hello {user.username}, please use the link below to verify your email address for your account to be activated \
+                {absurl}'
+            
+            data = {
+                'email_body': email_body,
+                'to_email': user.email,
+                'email_subject': 'Activate your Twillio oAuth account'
+            }
+
+            Util.send_email(data=data)
 
             response = {
-                'success': 'User account created successfully',
+                'success': True,
                 'data': {
                     'message': 'Verify your email to complete registration',
                     'username': user.username,
                     'email': user.email,
                     'phone_number': profile.phone_number,
-                    # 'token': new_profile_serialized
+                    'token': {
+                        'refresh': str(refresh),
+                        'access': str(refresh.access_token)
+                    }
                 }
             }
 
@@ -67,6 +81,46 @@ class RegisterUserView(generics.GenericAPIView):
             'error': serializer.errors
         }
         return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
+    
+class VerifyEmail(views.APIView):
+    serializer_class = EmailVerificationSerializer
+
+    token_param_config = openapi.Parameter('token', in_=openapi.IN_QUERY, description='Description', type=openapi.TYPE_STRING)
+
+    @swagger_auto_schema(manual_parameters=[token_param_config])
+    def get(self, request):
+
+        token = request.GET.get('token')
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+
+            user = User.objects.get(id=payload['user_id'])
+
+            profile = Profile.objects.get(user=user)
+
+            if not profile.is_verified:
+                profile.is_verified = True
+                profile.save()
+
+            response = {
+                'message': 'success',
+                'email': 'Account successfully activated'
+            }
+
+            return Response(data=response, status=status.HTTP_200_OK)
+
+        except jwt.ExpiredSignatureError:
+            response = {
+                'error': 'Activation link expired'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.exceptions.DecodeError:
+            response = {
+                'error': 'Invalid token'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
     
 
 class VerifyOTPView(generics.GenericAPIView):
@@ -78,6 +132,8 @@ class VerifyOTPView(generics.GenericAPIView):
 
         data = request.data
 
+        token = data['otp']
+
         serializer = self.serializer_class(data=data)
 
         if serializer.is_valid(raise_exception=True):
@@ -88,7 +144,7 @@ class VerifyOTPView(generics.GenericAPIView):
 
             otp = user_data['otp']
             try:
-                MessageHandler.verify_token(phone_number='743538544', token=otp)
+                MessageHandler.verify_token(phone_number='705651500', token=otp)
                 response = {
                     'success': True,
                     'data': {
@@ -115,13 +171,12 @@ class PhoneLoginView(generics.GenericAPIView):
 
         phone_number = data['phone_number']
 
-        user = Profile.objects.filter(phone_number=phone_number).first()
+        profile = Profile.objects.filter(phone_number=phone_number).first()
 
-        if user is None:
+        if profile is None:
             response = {
-                'error': 'User not found'
+                'error': 'Profile not found'
             }
-
             return Response(data=response, status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.serializer_class(data=data)
@@ -132,9 +187,46 @@ class PhoneLoginView(generics.GenericAPIView):
 
             phone_number = user_data['phone_number']
 
-            MessageHandler(phone_number).send_otp_via_message()
+            profile_instance = Profile.objects.get(phone_number=phone_number)
 
-            return Response(data=response, status=status.HTTP_200_OK)
+            user = profile_instance.get_user()
+
+            try:
+                
+                # MessageHandler(phone_number).send_otp_via_message()
+
+                refresh = RefreshToken.for_user(user)
+
+                response = {
+                    'success': True,
+                    'data': {
+                        'message': 'Proceed to verify OTP',
+                        'user': user.username,
+                        'auth-tokens': {
+                            'refresh': str(refresh),
+                            'access': str(refresh.access_token)
+                        }
+                    }
+                }
+                return Response(data=response, status=status.HTTP_200_OK)
+            except:
+                response = {
+                    'success': False,
+                    'data': {
+                        'message': 'Unable to send OTP',
+                        'user': user.username,
+                        'auth-tokens': {
+                            'refresh': str(refresh),
+                            'access': str(refresh.access_token)
+                        }
+                    }
+                }
+                return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
+        response = {
+            'success': 'Failed',
+            'error': serializer.errors
+        }
+        return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
         
 class EmailLoginView(generics.GenericAPIView):
 
@@ -161,17 +253,20 @@ class EmailLoginView(generics.GenericAPIView):
 
             user_data = serializer._validated_data
 
-            valid_email = user_data['email']
+            refresh = RefreshToken.for_user(user)
 
-            otp = random.randint(1000, 9999)
+            valid_email = user_data['email']
 
             # send email
 
             response = {
                 'data': {
                     'message': 'Proceed to verify OTP',
-                    'OTP': otp,
-                    'email': valid_email
+                    'user': user.username,
+                    'auth-tokens': {
+                        'refresh': str(refresh),
+                        'access': str(refresh.access_token)
+                    }
                 }
             }
 

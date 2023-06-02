@@ -161,3 +161,12 @@ AUTH_TOKEN=config('AUTH_TOKEN')
 COUNTRY_CODE=config('COUNTRY_CODE')
 TWILIO_PHONE_NUMBER=config('TWILIO_PHONE_NUMBER')
 VERIFY_SERVICE=config('VERIFY_SERVICE')
+
+## Email configuration
+EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST=config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_FROM=config('EMAIL_FROM')
+EMAIL_HOST_USER=config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD=config('EMAIL_HOST_PASSWORD')
+EMAIL_PORT=config('EMAIL_PORT', default=587)
+EMAIL_USE_TLS=True
