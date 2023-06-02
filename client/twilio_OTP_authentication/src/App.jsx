@@ -11,6 +11,7 @@ import Register from './screens/Register';
 import OTP from './screens/OTP';
 import ApiProvider from './context/Apiprovider';
 import FlashProvider from './context/Flashprovider';
+import Dashboard from './screens/Dashboard';
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
             <Route path='/' element={<Login />} />
             <Route path='sign-up/' element={<Register />} />
             <Route path='verify-token/:uuid' element={<OTP />} />
+            <Route path='dashboard/' element={<Dashboard />}/>
           </Routes>
         </ApiProvider>
       </FlashProvider>
