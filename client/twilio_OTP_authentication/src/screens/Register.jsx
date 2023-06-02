@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { redirect } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
@@ -17,6 +17,8 @@ function Register() {
     const emailField = useRef();
     const phoneNumberField = useRef();
     const flash = useFlash();
+
+    const navigate = useNavigate();
 
     const onSubmit = (e) => {
         e.preventDefault();
@@ -68,27 +70,29 @@ function Register() {
               },
             body: JSON.stringify(userInformation)
         }).then((response) => {
-            if (response.ok == true){
-                flash('You have successfully registered an account', 'success');
-                setFormErrors({});
-                return redirect('/')
-            } else if(response.ok == false){
-                console.error('Hapa kuna shida', response)
-                flash('Failed to create account', 'danger')
-            };
+            if (!response.ok){
+                flash('Unable to create account', 'danger');
+                throw new Error(
+                    `This is an HTTP errror: The status is ${response.status}`
+                )
+            } 
+            
+            if (response.ok === true && response.status === 201){
+            flash('You have successfully registered an account', 'success');
+            navigate('/')
+             }
 
             return response.json()})
-        .then((data) => {
-            // console.log('data', data)
-            // flash(data.success, 'success');
-            
+        .then((data) => { 
+            return data;
         })
         .catch((error) => {
-            console.error('Shida',error)
-            flash('Failed to create account', 'danger')
+            flash('Failed to create account', 'danger');
+            return error;
         })
 
     }
+
     return (
         <>
             <NavBar />
