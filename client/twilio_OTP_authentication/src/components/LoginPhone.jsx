@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { redirect } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
+import { useNavigate } from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import InputField from './inputField';
@@ -10,6 +11,7 @@ function LoginPhone() {
     const [formErrors, setFormErrors] = useState({});
     const flash = useFlash();
     const phoneNumberField = useRef();
+    const navigate = useNavigate();
 
     const onSubmit = (e) => {
         e.preventDefault();
@@ -39,24 +41,32 @@ function LoginPhone() {
               },
             body: JSON.stringify(user_input) 
         }).then((response) => {
-            if (response.ok == true){
-                flash('Proceed to verify OTP', 'success');
-                setFormErrors({});
-                return redirect('/verify-token/')
-            } else if(response.ok == false){
-                console.error('Hapa kuna shida', response)
-                flash('Account does not exist please register', 'danger')
-            };
+            console.log('res', response)
+            if (!response.ok){
+                flash('Unable to fetch account', 'danger')
+            }
+
+            if (response.ok === true && response.status === 200){
+                flash('Account found, proceed to verify OTP', 'success')
+            }
 
             return response.json()})
         .then((data) => {
-            // console.log('data', data)
-            // flash(data.success, 'success');
-            
+            console.log('data', data)
+            if(data !== undefined){
+                let auth_tokens = data.data.auth_tokens
+                localStorage.setItem('token', JSON.stringify({
+                    'accessToken': auth_tokens['access'],
+                    'refreshToken': auth_tokens['refresh']
+                }));
+                navigate(`/verify-token/${uuidv4()}`)
+            };
+            flash('Trouble on login', 'warning')
+            return data;
         })
         .catch((error) => {
-            console.error('Shida',error)
             flash('Failed: System encountered a problem.', 'danger')
+            return error;
         })
     }
     return (

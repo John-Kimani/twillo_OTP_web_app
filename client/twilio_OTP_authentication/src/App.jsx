@@ -21,7 +21,7 @@ function App() {
           <Routes>
             <Route path='/' element={<Login />} />
             <Route path='sign-up/' element={<Register />} />
-            <Route path='verify-token/' element={<OTP />} />
+            <Route path='verify-token/:uuid' element={<OTP />} />
           </Routes>
         </ApiProvider>
       </FlashProvider>

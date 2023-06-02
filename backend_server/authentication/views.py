@@ -50,13 +50,12 @@ class RegisterUserView(generics.GenericAPIView):
 
             absurl = 'http://'+current_site+relativeLink+'?token='+str(refresh.access_token)
 
-            email_body = f'Hello {user.username}, please use the link below to verify your email address for your account to be activated \
-                {absurl}'
+            email_body = f'Hello {user.username}, \n\nPlease use the link below to verify your email address for your account to be activated\n\n{absurl}'
             
             data = {
                 'email_body': email_body,
                 'to_email': user.email,
-                'email_subject': 'Activate your Twillio oAuth account'
+                'email_subject': 'Activate your Twillio oAuth by Kimperria account'
             }
 
             Util.send_email(data=data)
@@ -193,7 +192,7 @@ class PhoneLoginView(generics.GenericAPIView):
 
             try:
                 
-                # MessageHandler(phone_number).send_otp_via_message()
+                MessageHandler(phone_number).send_otp_via_message()
 
                 refresh = RefreshToken.for_user(user)
 
@@ -202,7 +201,7 @@ class PhoneLoginView(generics.GenericAPIView):
                     'data': {
                         'message': 'Proceed to verify OTP',
                         'user': user.username,
-                        'auth-tokens': {
+                        'auth_tokens': {
                             'refresh': str(refresh),
                             'access': str(refresh.access_token)
                         }
@@ -275,13 +274,12 @@ class EmailLoginView(generics.GenericAPIView):
 
                 absurl = 'http://'+current_site+relativeLink+'?token='+str(refresh.access_token)
 
-                email_body = f'Hi {user.username}, here is your magic link \
-                    {absurl}'
+                email_body = f'Hi {user.username}, \n\nClick on this magic link to login. \n\n{absurl}'
                 
                 data = {
                     'email_body': email_body,
                     'to_email': valid_email,
-                    'email_subject': 'Login to your Twillio with Magic link'
+                    'email_subject': 'Login to Twilio oAuth by Kimperria'
                 }
 
                 Util.send_email(data=data)
@@ -292,7 +290,7 @@ class EmailLoginView(generics.GenericAPIView):
                     'data': {
                         'message': 'Proceed to verify OTP',
                         'user': user.username,
-                        'auth-tokens': {
+                        'auth_tokens': {
                             'refresh': str(refresh),
                             'access': str(refresh.access_token)
                         }
