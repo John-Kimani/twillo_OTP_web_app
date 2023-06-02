@@ -72,9 +72,10 @@ function Register() {
         }).then((response) => {
             if (!response.ok){
                 flash('Unable to create account', 'danger');
-                throw new Error(
-                    `This is an HTTP errror: The status is ${response.status}`
-                )
+                // throw new Error(
+                //     `This is an HTTP errror: The status is ${response.status}`
+                // )
+                console.log(response)
             } 
             
             if (response.ok === true && response.status === 201){
