@@ -249,25 +249,61 @@ class EmailLoginView(generics.GenericAPIView):
 
         serializer = self.serializer_class(data=data)
 
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
 
             user_data = serializer._validated_data
 
             refresh = RefreshToken.for_user(user)
 
-            valid_email = user_data['email']
+            user_instance = User.objects.get(email=email)
 
-            # send email
+            user_id = user_instance.pk
 
-            response = {
-                'data': {
-                    'message': 'Proceed to verify OTP',
-                    'user': user.username,
-                    'auth-tokens': {
-                        'refresh': str(refresh),
-                        'access': str(refresh.access_token)
+            profile = Profile.objects.get(user=user_id)
+            phone_number = profile.phone_number
+            try:
+                # send both OTP on phone and magic link
+                # MessageHandler(phone_number=phone_number).send_otp_via_message()
+
+                valid_email = user_data['email']
+
+                # send email with magic link
+                refresh = RefreshToken.for_user(user)
+                current_site = get_current_site(request).domain
+                relativeLink = reverse('email-verify')
+
+
+                absurl = 'http://'+current_site+relativeLink+'?token='+str(refresh.access_token)
+
+                email_body = f'Hi {user.username}, here is your magic link \
+                    {absurl}'
+                
+                data = {
+                    'email_body': email_body,
+                    'to_email': valid_email,
+                    'email_subject': 'Login to your Twillio with Magic link'
+                }
+
+                Util.send_email(data=data)
+
+                # verify email twilio
+
+                response = {
+                    'data': {
+                        'message': 'Proceed to verify OTP',
+                        'user': user.username,
+                        'auth-tokens': {
+                            'refresh': str(refresh),
+                            'access': str(refresh.access_token)
+                        }
                     }
                 }
-            }
 
-            return Response(data=response, status=status.HTTP_200_OK)
+                return Response(data=response, status=status.HTTP_200_OK)
+            
+            except:
+                response = {
+                    'success': False,
+                    'error': 'Unable to send OTP or Verify magic link'
+                }
+                return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
