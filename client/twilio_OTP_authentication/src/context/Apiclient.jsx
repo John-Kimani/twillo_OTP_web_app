@@ -17,6 +17,7 @@ export default class TwilioAPIClient {
             method: options.method,
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
               ...options.headers,
             },
             body: options.body ? JSON.stringify(options.body) : null,
@@ -47,6 +48,8 @@ export default class TwilioAPIClient {
       async post(url, body, options) {
         return this.request({method: 'POST', url, body, ...options});
       }
+
+      
     
 }
 
