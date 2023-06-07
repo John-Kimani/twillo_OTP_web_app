@@ -7,7 +7,7 @@ function NavBar() {
   return (
     <Navbar bg="light" expand="lg">
     <Container>
-      <Navbar.Brand href="/dashboard">Twilio Authentication</Navbar.Brand>
+      <Navbar.Brand href="/">Twilio Authentication</Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
         

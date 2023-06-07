@@ -130,31 +130,46 @@ class VerifyOTPView(generics.GenericAPIView):
     def post(self, request:Request):
 
         data = request.data
+        user = request.user
+        # print(user.id, user.profile.phone_number)
+        if user.is_authenticated:
+            phone_number = user.profile.phone_number
 
-        token = data['otp']
+            serializer = self.serializer_class(data=data)
 
-        serializer = self.serializer_class(data=data)
+            if serializer.is_valid(raise_exception=True):
 
-        if serializer.is_valid(raise_exception=True):
+                user_data = serializer._validated_data
 
-            user_data = serializer._validated_data
+                # serializer.save()
 
-            # serializer.save()
+                token = user_data['token']
+                try:
+                    MessageHandler(phone_number=phone_number).verify_SMS_token(token=token)
 
-            otp = user_data['otp']
-            try:
-                MessageHandler.verify_token(phone_number='705651500', token=otp)
-                response = {
-                    'success': True,
-                    'data': {
-                        'message': 'OTP verification success'
+                    response = {
+                        'success': True,
+                        'data': {
+                            'message': 'OTP verification success'
+                        }
                     }
-                }
-                return Response(data=response, status=status.HTTP_200_OK)
-            except:
-                return Response(data='An error occured', status=status.HTTP_400_BAD_REQUEST)
+                    return Response(data=response, status=status.HTTP_200_OK)
+                except:
+                    return Response(data='Twillio: An error occured', status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            response = {
+                'success': False,
+                'data': "Unauthorized"
+            }
+            return Response(data=response, status=status.HTTP_401_UNAUTHORIZED)
+
+
+
+        
+
+
 
         
 
@@ -209,6 +224,8 @@ class PhoneLoginView(generics.GenericAPIView):
                 }
                 return Response(data=response, status=status.HTTP_200_OK)
             except:
+
+                refresh = RefreshToken.for_user(user)
                 response = {
                     'success': False,
                     'data': {

@@ -1,13 +1,19 @@
 import React, { useRef, useState } from 'react';
-import { redirect } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import { useFlash } from '../context/Flashprovider';
 import InputField from './inputField';
 
 function Verify(){
 
     const [formErrors, setFormErrors ] = useState({});
     const tokenField = useRef();
+    const flash = useFlash();
+    const navigate = useNavigate();
+    const token = localStorage.getItem('token')
+    const accessToken = JSON.parse(token)
+    const user = accessToken['accessToken']
 
     const onVerify = (e) => {
         e.preventDefault();
@@ -24,11 +30,10 @@ function Verify(){
         if (Object.keys(errors).length > 0){
             return;
         }
-
-        console.log('token', token);
         let userInput = {
             'token': token
         }
+
 
         fetch('http://localhost:8000/api/verify-otp/', {
             method: 'POST',
@@ -36,23 +41,27 @@ function Verify(){
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user}`
               },
-            body: JSON.stringify(userInformation)
+            body: JSON.stringify(userInput)
         }).then((response) => {
-            if (response.ok == true){
-                flash('Login success', 'success');
-                setFormErrors({});
-                return redirect('/dashboard')
-            } else if(response.ok == false){
-                console.error('Hapa kuna shida', response)
+
+            console.log('res', response)
+            if (!response.ok){
                 flash('Unable to verify contact Admin', 'danger')
+                flash('Login success', 'success');
+            } 
+            if(response.ok == true && response.status === 200){
+                flash('Login success', 'success');
             };
 
             return response.json()})
         .then((data) => {
-            // console.log('data', data)
-            // flash(data.success, 'success');
-            
+            console.log('data', data)
+            if(data !== undefined){
+                navigate('/dashboard/')
+            }
+            return data;
         })
         .catch((error) => {
             console.error('Shida',error)

@@ -55,10 +55,10 @@ class EmailVerificationSerializer(serializers.ModelField):
     
 class VerifyOTPSerializer(serializers.ModelSerializer):
 
-    otp = serializers.CharField()
+    token = serializers.CharField()
     class Meta:
         model = Profile
-        fields = ['otp']
+        fields = ['token']
 
 
     
